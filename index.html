@@ -688,6 +688,10 @@ async function saveGuard(g,changeDetail){
 
 async function deleteGuardRemote(g){
   if(!demoMode&&scriptUrl){
+    try{await fetch(`${scriptUrl}?action=delete&quarter=${enc(currentQuarter)}&name=${enc(g.name)}`);}catch(e){}
+  }
+}
+
 async function loadPrevQuarterScores(){
   const prev=PREV_QUARTER[currentQuarter];
   if(!prev||demoMode||!scriptUrl){prevQuarterScores={};return;}
