@@ -658,13 +658,19 @@ async function initializeSheet(){
   if(demoMode||!scriptUrl){alert('Connect to Google Sheets first via Settings.');return;}
   if(!confirm(`Push all ${guards.length} officers to Google Sheets for ${currentQuarter}?\n\nThis activates live sync. Existing ratings will not be overwritten.`))return;
   setStatus('loading','Sending roster to Google Sheets...');
+  const batchSize=10;
+  let totalAdded=0;
   try{
-    const guardsData=enc(JSON.stringify(guards.map(g=>({name:g.name,role:g.role}))));
-    const url=`${scriptUrl}?action=init&quarter=${enc(currentQuarter)}&guards=${guardsData}`;
-    const res=await fetch(url);
-    const data=await res.json();
-    if(data.error) throw new Error(data.error);
-    setStatus('connected',`Sheet initialized — ${data.added} officers added. Live sync is now active.`);
+    for(let i=0;i<guards.length;i+=batchSize){
+      const batch=guards.slice(i,i+batchSize).map(g=>({name:g.name,role:g.role}));
+      const url=`${scriptUrl}?action=init&quarter=${enc(currentQuarter)}&guards=${enc(JSON.stringify(batch))}`;
+      const res=await fetch(url);
+      const data=await res.json();
+      if(data.error) throw new Error(data.error);
+      totalAdded+=data.added||0;
+      setStatus('loading',`Initializing... ${Math.min(i+batchSize,guards.length)} / ${guards.length} sent`);
+    }
+    setStatus('connected',`Sheet initialized — ${totalAdded} officers added. Live sync is now active.`);
     document.getElementById('lastSaved').textContent=`Initialized ${new Date().toLocaleTimeString()}`;
   }catch(e){
     setStatus('error',`Initialize failed: ${e.message}`);
