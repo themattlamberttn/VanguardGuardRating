@@ -652,29 +652,41 @@ async function loadData(){
   }
 }
 
+const enc=encodeURIComponent;
+
 async function initializeSheet(){
   if(demoMode||!scriptUrl){alert('Connect to Google Sheets first via Settings.');return;}
   if(!confirm(`Push all ${guards.length} officers to Google Sheets for ${currentQuarter}?\n\nThis activates live sync. Existing ratings will not be overwritten.`))return;
-  setStatus('loading',`Sending roster to Google Sheets...`);
+  setStatus('loading','Sending roster to Google Sheets...');
   try{
-    const res=await fetch(scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      action:'init',quarter:currentQuarter,
-      guards:guards.map(g=>({name:g.name,role:g.role}))
-    })});
+    const guardsData=enc(JSON.stringify(guards.map(g=>({name:g.name,role:g.role}))));
+    const url=`${scriptUrl}?action=init&quarter=${enc(currentQuarter)}&guards=${guardsData}`;
+    const res=await fetch(url);
     const data=await res.json();
     if(data.error) throw new Error(data.error);
     setStatus('connected',`Sheet initialized — ${data.added} officers added. Live sync is now active.`);
     document.getElementById('lastSaved').textContent=`Initialized ${new Date().toLocaleTimeString()}`;
   }catch(e){
-    setStatus('error',`Initialize failed: ${e.message}. Check that your script is deployed with "Who has access: Anyone".`);
+    setStatus('error',`Initialize failed: ${e.message}`);
   }
 }
 
+async function saveGuard(g,changeDetail){
+  if(demoMode||!scriptUrl)return;
+  try{
+    const url=`${scriptUrl}?action=save&quarter=${enc(currentQuarter)}&guard=${enc(JSON.stringify(g))}`;
+    await fetch(url);
+    document.getElementById('lastSaved').textContent=`Last saved ${new Date().toLocaleTimeString()}`;
+  }catch(e){setStatus('error','Save failed — check connection');}
+}
+
+async function deleteGuardRemote(g){
+  if(!demoMode&&scriptUrl){
 async function loadPrevQuarterScores(){
   const prev=PREV_QUARTER[currentQuarter];
   if(!prev||demoMode||!scriptUrl){prevQuarterScores={};return;}
   try{
-    const res=await fetch(`${scriptUrl}?action=get&quarter=${encodeURIComponent(prev)}&t=${Date.now()}`);
+    const res=await fetch(`${scriptUrl}?action=get&quarter=${enc(prev)}&t=${Date.now()}`);
     const data=await res.json();
     prevQuarterScores={};
     if(data.guards){
@@ -683,25 +695,7 @@ async function loadPrevQuarterScores(){
         if(v.length) prevQuarterScores[g.name]=Math.round((v.reduce((a,b)=>a+b,0)/v.length)*10)/10;
       });
     }
-  } catch(e){prevQuarterScores={};}
-}
-
-async function saveGuard(g,changeDetail){
-  if(demoMode||!scriptUrl)return;
-  try{
-    await fetch(scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      action:'save',quarter:currentQuarter,guard:g,user:currentUser,change:changeDetail||'Updated'
-    })});
-    document.getElementById('lastSaved').textContent=`Last saved ${new Date().toLocaleTimeString()}`;
-  } catch(e){setStatus('error','Save failed — check connection');}
-}
-
-async function deleteGuardRemote(g){
-  if(!demoMode&&scriptUrl){
-    try{await fetch(scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      action:'delete',quarter:currentQuarter,name:g.name,user:currentUser,change:`Removed officer: ${g.name}`
-    })});}catch(e){}
-  }
+  }catch(e){prevQuarterScores={};}
 }
 
 function refreshData(){nextId=1;expandedRows.clear();expandedSection={};loadData();}
@@ -1097,13 +1091,8 @@ function unassignOfficer(siteAbbr,name){
 }
 
 async function savePostAssignments(siteAbbr,officerName,action){
-  if(demoMode||!scriptUrl)return;
-  try{
-    await fetch(scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      action:'savePost',siteAbbr,officerName,postAction:action,
-      user:currentUser,change:`${officerName} ${action} from ${siteAbbr}`
-    })});
-  }catch(e){}
+  // Post assignments stored locally only — no Sheet call needed
+  localStorage.setItem('vanguard_posts',JSON.stringify(postAssignments));
 }
 
 // ── ACTIONS ───────────────────────────────────────────────────────────────────
@@ -1147,8 +1136,7 @@ function clearAllRatings(){
   if(!confirm('Clear all ratings for this quarter? This cannot be undone.'))return;
   guards.forEach(g=>{CATS.forEach(c=>g.ratings[c]=0);g.notes='';g.teamPerf=0;});
   expandedRows.clear();expandedSection={};render();
-  if(!demoMode&&scriptUrl)fetch(scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'clearAll',quarter:currentQuarter,user:currentUser,change:'Cleared all ratings'})}).catch(()=>{});
+  if(!demoMode&&scriptUrl)fetch(`${scriptUrl}?action=clearAll&quarter=${enc(currentQuarter)}`).catch(()=>{});
 }
 
 function exportCSV(){
