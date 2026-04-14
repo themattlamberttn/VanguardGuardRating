@@ -606,10 +606,23 @@ function loadDefaultRoster(){
   render();
 }
 
+async function fetchWithTimeout(url, ms=10000){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),ms);
+  try{
+    const res=await fetch(url,{signal:controller.signal});
+    clearTimeout(timer);
+    return res;
+  }catch(e){
+    clearTimeout(timer);
+    throw e;
+  }
+}
+
 async function loadData(){
   setStatus('loading','Loading roster...');
   try{
-    const res=await fetch(`${scriptUrl}?action=get&quarter=${encodeURIComponent(currentQuarter)}&t=${Date.now()}`);
+    const res=await fetchWithTimeout(`${scriptUrl}?action=get&quarter=${encodeURIComponent(currentQuarter)}&t=${Date.now()}`);
     const data=await res.json();
     if(data.error) throw new Error(data.error);
 
@@ -722,7 +735,7 @@ async function backgroundSync(){
   if(demoMode||!scriptUrl||isSyncing)return;
   isSyncing=true;
   try{
-    const res=await fetch(`${scriptUrl}?action=get&quarter=${encodeURIComponent(currentQuarter)}&t=${Date.now()}`);
+    const res=await fetchWithTimeout(`${scriptUrl}?action=get&quarter=${encodeURIComponent(currentQuarter)}&t=${Date.now()}`);
     const data=await res.json();
     if(!data.guards||data.error)return;
     let changed=false;
