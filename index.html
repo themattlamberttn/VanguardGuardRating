@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Vanguard Security — Guard Ratings</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#003087;--blue-light:#e8edf7;--gold:#C9A84C;
+  --text:#1a1a1a;--text-muted:#6b6b6b;--border:#e0e0e0;--bg:#f5f6f8;--white:#ffffff;
+  --green:#1D9E75;--green-bg:#E1F5EE;--green-border:#5DCAA5;
+  --blue2:#378ADD;--blue2-bg:#E6F1FB;--blue2-border:#85B7EB;
+  --amber:#BA7517;--amber-bg:#FAEEDA;--amber-border:#EF9F27;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-border:#F09595;
+  --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.08);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+/* TOPBAR */
+.topbar{background:var(--blue);color:white;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.topbar-logo{font-size:18px;font-weight:700;letter-spacing:.04em;color:white}
+.topbar-sub{font-size:12px;opacity:.65}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.quarter-select{font-size:13px;padding:5px 10px;border-radius:var(--radius);border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:white;cursor:pointer}
+.quarter-select option{background:var(--blue)}
+.btn{font-size:13px;padding:7px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--white);color:var(--text);cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{background:var(--bg)}
+.btn-primary{background:var(--blue);color:white;border-color:var(--blue)}
+.btn-primary:hover{background:#002070}
+.btn-gold{background:var(--gold);color:white;border-color:var(--gold)}
+.btn-gold:hover{background:#b8922f}
+.btn-sm{font-size:12px;padding:4px 10px}
+/* TABS */
+.tab-bar{background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:2px}
+.tab{font-size:13px;font-weight:500;padding:13px 16px;cursor:pointer;color:var(--text-muted);border-bottom:3px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.tab-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);border-radius:10px;font-size:10px;font-weight:700;padding:1px 6px;margin-left:5px}
+/* LAYOUT */
+.main{max-width:1500px;margin:0 auto;padding:18px 20px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+/* STATUS */
+.status-bar{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:9px 16px;margin-bottom:14px;display:flex;align-items:center;gap:8px;font-size:13px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0}
+.status-dot.connected{background:var(--green)}
+.status-dot.loading{background:var(--amber);animation:pulse 1s infinite}
+.status-dot.error{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.status-text{color:var(--text-muted)}
+/* SUMMARY */
+.summary-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.sum-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow)}
+.sum-label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);font-weight:500}
+.sum-val{font-size:24px;font-weight:700;color:var(--text);margin-top:3px;line-height:1}
+.sum-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+/* LEGEND + CONTROLS */
+.legend{display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-muted)}
+.l-dot{width:9px;height:9px;border-radius:50%}
+.controls{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.search-wrap{flex:1;min-width:180px;position:relative}
+.search-wrap input{width:100%;padding:7px 12px 7px 32px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--white);color:var(--text)}
+.search-wrap input:focus{outline:none;border-color:var(--blue)}
+.search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px}
+select.filter{font-size:13px;padding:7px 9px;border:1px solid var(--border);border-radius:var(--radius);background:var(--white);color:var(--text);cursor:pointer}
+/* TABLE */
+.table-wrap{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{background:var(--blue);color:white}
+th{padding:9px 8px;text-align:left;font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.officer-row:hover td{background:#f9f9fb;cursor:pointer}
+/* SECTION HEADER */
+.section-header td{background:var(--blue-light);color:var(--blue);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:7px 10px;border-bottom:1px solid #c0cfe8}
+/* OFFICER */
+.avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;border:2px solid rgba(0,0,0,.06)}
+.cell-name{display:flex;align-items:center;gap:8px}
+.officer-name{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+.officer-role{font-size:11px;color:var(--text-muted)}
+.type-badge{font-size:10px;padding:2px 5px;border-radius:4px;font-weight:600;border:1px solid;white-space:nowrap}
+.type-sup{background:#e8edf7;color:var(--blue);border-color:#b0c0e0}
+.type-off{background:var(--bg);color:var(--text-muted);border-color:var(--border)}
+/* RATINGS */
+.star-row{display:flex;gap:2px}
+.star-btn{width:25px;height:25px;border:1px solid var(--border);border-radius:5px;background:transparent;cursor:pointer;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--text-muted)}
+.star-btn:hover{border-color:#aaa;background:var(--bg)}
+.star-btn.active-1{background:var(--green-bg);border-color:var(--green-border);color:var(--green)}
+.star-btn.active-2{background:var(--blue2-bg);border-color:var(--blue2-border);color:var(--blue2)}
+.star-btn.active-3{background:var(--amber-bg);border-color:var(--amber-border);color:var(--amber)}
+.star-btn.active-4{background:var(--red-bg);border-color:var(--red-border);color:var(--red)}
+/* OVERALL */
+.overall-badge{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:25px;border-radius:5px;font-weight:700;font-size:12px;border:1px solid;padding:0 3px}
+.ob-na{background:var(--bg);color:var(--text-muted);border-color:var(--border);font-size:11px}
+.ob-1{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+.ob-2{background:var(--blue2-bg);color:var(--blue2);border-color:var(--blue2-border)}
+.ob-3{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-border)}
+.ob-4{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
+/* TREND */
+.trend{font-size:16px;font-weight:700;line-height:1}
+.trend-up{color:var(--green)}
+.trend-dn{color:var(--red)}
+.trend-flat{color:var(--text-muted)}
+.trend-na{color:var(--border);font-size:12px}
+/* POST ELIGIBILITY */
+.elig-flag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:12px;border:1px solid;white-space:nowrap}
+.elig-green{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+.elig-red{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
+.elig-na{background:var(--bg);color:var(--text-muted);border-color:var(--border);font-size:10px}
+/* NOTES + DELETE */
+.notes-input{font-size:12px;border:1px solid var(--border);border-radius:5px;padding:3px 7px;background:transparent;color:var(--text);width:100%;min-width:100px}
+.notes-input:focus{outline:none;border-color:var(--blue)}
+.del-btn{background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-muted);opacity:.3;padding:2px 4px;border-radius:4px}
+.del-btn:hover{opacity:1;background:var(--red-bg);color:var(--red)}
+.expand-btn{background:none;border:none;cursor:pointer;font-size:11px;color:var(--text-muted);padding:2px 4px;opacity:.4;transition:transform .2s;line-height:1}
+.expand-btn.open{transform:rotate(90deg);opacity:1;color:var(--blue)}
+/* EXPAND ROW */
+.expand-row td{background:#f2f5fc;border-bottom:2px solid #d0daf0;padding:0}
+.expand-content{padding:14px 14px 14px 50px}
+.expand-tabs{display:flex;gap:4px;margin-bottom:12px}
+.expand-tab{font-size:12px;font-weight:600;padding:5px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--white);color:var(--text-muted);cursor:pointer}
+.expand-tab.active{background:var(--blue);color:white;border-color:var(--blue)}
+.expand-section{display:none}
+.expand-section.active{display:block}
+/* DEVELOPMENT */
+.expand-header{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+.expand-header.weak{color:var(--amber)}
+.expand-header.critical{color:var(--red)}
+.improve-grid{display:flex;gap:8px;flex-wrap:wrap}
+.improve-card{border-radius:var(--radius);border:1px solid;padding:9px 14px;min-width:120px}
+.improve-card.icritical{background:var(--red-bg);border-color:var(--red-border)}
+.improve-card.iweak{background:var(--amber-bg);border-color:var(--amber-border)}
+.improve-card.istrong{background:var(--green-bg);border-color:var(--green-border)}
+.ic-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.icritical .ic-label{color:var(--red)}
+.iweak .ic-label{color:var(--amber)}
+.istrong .ic-label{color:var(--green)}
+.ic-cat{font-size:13px;font-weight:600;color:var(--text)}
+.ic-score{font-size:11px;color:var(--text-muted);margin-top:1px}
+/* COACHING LOG */
+.coaching-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.coaching-title{font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.05em}
+.coaching-entries{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;max-height:240px;overflow-y:auto}
+.coaching-entry{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px}
+.coaching-entry-meta{font-size:11px;color:var(--text-muted);margin-bottom:4px;display:flex;gap:8px}
+.coaching-entry-user{font-weight:600;color:var(--blue)}
+.coaching-entry-text{font-size:13px;color:var(--text);line-height:1.5}
+.coaching-entry-type{font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;border:1px solid}
+.ctype-call{background:var(--blue2-bg);color:var(--blue2);border-color:var(--blue2-border)}
+.ctype-coaching{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+.ctype-warning{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-border)}
+.ctype-note{background:var(--bg);color:var(--text-muted);border-color:var(--border)}
+.coaching-compose{display:flex;flex-direction:column;gap:6px}
+.coaching-compose-row{display:flex;gap:6px}
+.coaching-type-sel{font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:var(--radius);background:var(--white);color:var(--text)}
+.coaching-text{font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;background:var(--white);color:var(--text);resize:vertical;min-height:60px;width:100%}
+.coaching-text:focus{outline:none;border-color:var(--blue)}
+.coaching-empty{font-size:13px;color:var(--text-muted);font-style:italic;padding:8px 0}
+/* ADD ROW */
+.add-row{display:flex;align-items:center;gap:8px;padding:9px 10px;border-top:1px solid var(--border);background:var(--bg)}
+.add-name{font-size:13px;flex:1;border:1px solid var(--border);border-radius:var(--radius);padding:5px 9px;background:var(--white);color:var(--text)}
+.add-name:focus{outline:none;border-color:var(--blue)}
+.add-role-sel{font-size:12px;padding:5px 7px;border:1px solid var(--border);border-radius:var(--radius);background:var(--white);color:var(--text)}
+/* DEVELOPMENT TAB */
+.dev-intro{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:14px;box-shadow:var(--shadow);font-size:13px;color:var(--text-muted);line-height:1.6}
+.dev-intro strong{color:var(--text)}
+.dev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.dev-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.dev-card-header{padding:11px 14px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border)}
+.dev-card-header.hcritical{background:#fff5f5;border-bottom-color:var(--red-border)}
+.dev-card-header.hweak{background:#fffbf0;border-bottom-color:var(--amber-border)}
+.dev-card-name{font-weight:700;font-size:13px;flex:1}
+.dev-card-body{padding:11px 14px;display:flex;flex-direction:column;gap:8px}
+.dev-focus-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dev-focus-cat{font-size:13px;font-weight:500}
+.dev-weak-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.dev-weak-label.lc{color:var(--red)}
+.dev-weak-label.lw{color:var(--amber)}
+.dev-weak-label.ls{color:var(--green)}
+.dev-score{font-size:12px;font-weight:700;padding:2px 9px;border-radius:12px;border:1px solid}
+.ds1{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+.ds2{background:var(--blue2-bg);color:var(--blue2);border-color:var(--blue2-border)}
+.ds3{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-border)}
+.ds4{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
+.dev-divider{border:none;border-top:1px solid var(--border);margin:2px 0}
+.dev-empty{text-align:center;padding:50px 20px;color:var(--text-muted);font-size:14px;grid-column:1/-1}
+/* POST ASSIGNMENT TAB */
+.post-intro{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:14px;box-shadow:var(--shadow);font-size:13px;color:var(--text-muted);line-height:1.6}
+.post-intro strong{color:var(--text)}
+.post-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.post-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.post-card-header{background:var(--blue);color:white;padding:10px 14px}
+.post-card-title{font-weight:700;font-size:13px}
+.post-card-abbr{font-size:11px;opacity:.75;margin-top:1px;font-family:monospace;letter-spacing:.05em}
+.post-card-body{padding:10px 14px}
+.post-officer-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
+.post-officer-row:last-child{border-bottom:none}
+.post-officer-name{flex:1;font-size:13px;font-weight:500}
+.post-officer-badge{font-size:10px;padding:2px 6px;border-radius:8px;border:1px solid}
+.post-empty-slot{font-size:12px;color:var(--text-muted);font-style:italic;padding:5px 0}
+.post-assign-select{font-size:12px;padding:4px 6px;border:1px solid var(--border);border-radius:var(--radius);background:var(--white);color:var(--text);width:100%;margin-top:6px}
+.post-resume{margin-top:4px}
+.post-resume-label{font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em}
+.post-resume-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.post-resume-tag{font-size:10px;padding:2px 7px;border-radius:8px;background:var(--blue-light);color:var(--blue);border:1px solid #b0c0e0;font-weight:600}
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal{background:var(--white);border-radius:12px;padding:28px;max-width:500px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal h3{font-size:18px;font-weight:700;color:var(--blue);margin-bottom:8px}
+.modal p{font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6}
+.modal label{font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px}
+.modal input{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;margin-bottom:14px}
+.modal input:focus{outline:none;border-color:var(--blue)}
+.modal-note{font-size:12px;color:var(--text-muted);background:var(--blue-light);border-radius:var(--radius);padding:9px 11px;margin-bottom:14px;line-height:1.5}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end}
+.empty{text-align:center;padding:40px;color:var(--text-muted);font-size:14px}
+.footer{text-align:center;font-size:11px;color:var(--text-muted);margin-top:18px;padding-bottom:18px}
+@media(max-width:900px){
+  .summary-grid{grid-template-columns:repeat(3,1fr)}
+  th:nth-child(n+4):nth-child(-n+7),td:nth-child(n+4):nth-child(-n+7){display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- EMAIL MODAL -->
+<div class="modal-bg" id="emailModal" style="display:none">
+  <div class="modal">
+    <h3>Welcome to Vanguard Ratings</h3>
+    <p>Enter your Vanguard email. This identifies you in the coaching log and change history. You only need to do this once per device.</p>
+    <label>Your email address</label>
+    <input type="email" id="emailInput" placeholder="yourname@vanguardsecurity.com"/>
+    <div class="modal-btns"><button class="btn btn-primary" onclick="saveEmail()">Continue</button></div>
+  </div>
+</div>
+
+<!-- SETUP MODAL -->
+<div class="modal-bg" id="setupModal" style="display:none">
+  <div class="modal">
+    <h3>Google Sheets Connection</h3>
+    <p>Paste your Google Apps Script Web App URL to connect to shared data storage.</p>
+    <div class="modal-note"><strong>See SETUP.md</strong> for step-by-step instructions.</div>
+    <label>Google Apps Script Web App URL</label>
+    <input type="text" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/YOUR_ID/exec"/>
+    <div class="modal-btns">
+      <button class="btn" onclick="useDemoMode()">Demo mode</button>
+      <button class="btn btn-primary" onclick="saveScriptUrl()">Connect & Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">VANGUARD SECURITY</div>
+    <div class="topbar-sub">Guard Performance Ratings</div>
+  </div>
+  <div class="topbar-right">
+    <span id="userLabel" style="font-size:12px;opacity:.75;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+    <select class="quarter-select" id="quarterSel" onchange="onQuarterChange()">
+      <option>Q1 2026</option><option>Q2 2026</option><option>Q3 2026</option><option>Q4 2026</option>
+    </select>
+    <button class="btn btn-gold" onclick="exportCSV()">Export CSV</button>
+    <button class="btn" style="color:white;border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.15);font-weight:700" onclick="initializeSheet()" title="Push full roster to Google Sheets — do this once to activate live sync">&#9654; Initialize Sheet</button>
+    <button class="btn" style="color:white;border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.1)" onclick="showSetup()">Settings</button>
+    <button class="btn" style="color:white;border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.1)" onclick="changeUser()">Switch User</button>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="switchTab('roster',this)">Roster &amp; Ratings</div>
+  <div class="tab" onclick="switchTab('development',this)">Area for Improvement <span class="tab-badge" id="devBadge">0</span></div>
+  <div class="tab" onclick="switchTab('posts',this)">Post Assignments</div>
+</div>
+
+<div class="main">
+  <div class="status-bar">
+    <div class="status-dot loading" id="statusDot"></div>
+    <div class="status-text" id="statusText">Connecting...</div>
+    <div style="margin-left:auto;font-size:12px;color:var(--text-muted)" id="lastSaved"></div>
+  </div>
+
+  <div class="summary-grid" id="summaryGrid"></div>
+
+  <!-- ── ROSTER TAB ─────────────────────────────────────────────── -->
+  <div class="tab-panel active" id="panel-roster">
+    <div class="legend">
+      <div class="legend-item"><div class="l-dot" style="background:var(--green)"></div>1 – Outstanding</div>
+      <div class="legend-item"><div class="l-dot" style="background:var(--blue2)"></div>2 – Proficient</div>
+      <div class="legend-item"><div class="l-dot" style="background:var(--amber)"></div>3 – Developing</div>
+      <div class="legend-item"><div class="l-dot" style="background:var(--red)"></div>4 – Unsatisfactory</div>
+      <div class="legend-item">🟢 Top Post Eligible</div>
+      <div class="legend-item">🔴 Not Eligible</div>
+      <div class="legend-item" style="margin-left:auto;font-size:12px;color:var(--text-muted)">&#9654; Click row to expand</div>
+    </div>
+    <div class="controls">
+      <div class="search-wrap">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" id="searchInput" placeholder="Search officer name..." oninput="applyFilter()"/>
+      </div>
+      <select class="filter" id="filterRole" onchange="applyFilter()">
+        <option value="">All roles</option>
+        <option value="Officer">Officers</option>
+        <option value="Supervisor">Supervisors</option>
+      </select>
+      <select class="filter" id="filterRated" onchange="applyFilter()">
+        <option value="">All officers</option>
+        <option value="rated">Rated only</option>
+        <option value="unrated">Unrated only</option>
+        <option value="eligible">Top Post Eligible</option>
+        <option value="noteligible">Not Eligible</option>
+        <option value="attn">Rated 3–4</option>
+      </select>
+      <button class="btn" onclick="clearAllRatings()">Clear ratings</button>
+      <button class="btn btn-primary" onclick="refreshData()">&#8635; Refresh</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:28px"></th>
+            <th style="width:170px">Officer</th>
+            <th style="width:46px">Type</th>
+            <th style="width:108px">Punctuality</th>
+            <th style="width:108px">Professionalism</th>
+            <th style="width:108px">Reliability</th>
+            <th style="width:108px">Work ethic</th>
+            <th style="width:46px">Team Perf</th>
+            <th style="width:52px">Overall</th>
+            <th style="width:34px">Trend</th>
+            <th style="width:90px">Eligibility</th>
+            <th style="width:120px">Notes</th>
+            <th style="width:28px"></th>
+          </tr>
+        </thead>
+        <tbody id="guardBody"></tbody>
+      </table>
+      <div class="add-row">
+        <input class="add-name" id="newName" placeholder="+ Add officer name"/>
+        <select class="add-role-sel" id="newRole">
+          <option value="Officer">Officer</option>
+          <option value="Supervisor">Supervisor</option>
+        </select>
+        <button class="btn btn-primary" onclick="addGuard()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DEVELOPMENT TAB ───────────────────────────────────────── -->
+  <div class="tab-panel" id="panel-development">
+    <div class="dev-intro"><strong>Area for Improvement</strong> — shows each rated officer's weakest category relative to their own scores. Officers with any 3 or 4 are flagged priority and sorted to the top. Use this to guide coaching and post decisions.</div>
+    <div class="dev-grid" id="devGrid"></div>
+  </div>
+
+  <!-- ── POST ASSIGNMENTS TAB ──────────────────────────────────── -->
+  <div class="tab-panel" id="panel-posts">
+    <div class="post-intro"><strong>Post Assignments</strong> — assign officers to active client sites. Each officer builds a post resume as they're assigned, which you can use when making future placement decisions.</div>
+    <div class="controls">
+      <div class="search-wrap">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" id="postSearch" placeholder="Search site or officer..." oninput="renderPostTab()"/>
+      </div>
+    </div>
+    <div class="post-grid" id="postGrid"></div>
+  </div>
+
+  <div class="footer">Vanguard Security &nbsp;·&nbsp; Guard Performance Rating System &nbsp;·&nbsp; <span id="footerQ"></span></div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const QUARTER_KEY='vanguard_quarter';
+const CATS=['punctuality','professionalism','reliability','workEthic'];
+const CAT_LABELS=['Punctuality','Professionalism','Reliability','Work Ethic'];
+const CAT_MAP={punctuality:'Punctuality',professionalism:'Professionalism',reliability:'Reliability',workEthic:'Work Ethic'};
+const PREV_QUARTER={
+  'Q1 2026':null,'Q2 2026':'Q1 2026','Q3 2026':'Q2 2026','Q4 2026':'Q3 2026',
+  'Q1 2027':'Q4 2026','Q2 2027':'Q1 2027','Q3 2027':'Q2 2027','Q4 2027':'Q3 2027'
+};
+const AVC=[
+  ['#dbeafe','#1e40af'],['#dcfce7','#166534'],['#fef9c3','#854d0e'],
+  ['#fce7f3','#9d174d'],['#ede9fe','#5b21b6'],['#ffedd5','#9a3412'],
+  ['#e0f2fe','#075985'],['#f0fdf4','#14532d']
+];
+
+// ── SITES ─────────────────────────────────────────────────────────────────────
+const SITES=[
+  {name:'Memphis Commons',abbr:'MEM-COM'},
+  {name:'Market of Wolfcreek',abbr:'WLF-CRK'},
+  {name:'Porter Leath - English Towne',abbr:'PL-ENG'},
+  {name:'Porter Leath - N Ash St',abbr:'PL-ASH'},
+  {name:'Porter Leath - Ridge Meadow',abbr:'PL-RDG'},
+  {name:'Porter Leath - Park Ave',abbr:'PL-PRK'},
+  {name:'Porter Leath - American Way',abbr:'PL-AMW'},
+  {name:'Porter Leath - Prescott',abbr:'PL-PRE'},
+  {name:'Porter Leath - Baskin',abbr:'PL-BAS'},
+  {name:'Porter Leath - Range Line',abbr:'PL-RNG'},
+  {name:'Porter Leath - Alice Ave',abbr:'PL-ALI'},
+  {name:'Porter Leath - Manassas',abbr:'PL-MAN'},
+  {name:'Pleasant View School',abbr:'PLV-SCH'},
+  {name:'Garden of River Oaks HOA',abbr:'RVR-OAK'},
+  {name:'Bank Tennessee - Downtown',abbr:'BNK-TN-DT'},
+  {name:'Bank Tennessee - Poplar',abbr:'BNK-TN-POP'},
+  {name:'Juice Plus - Shelby Dr',abbr:'JCE-PLU'},
+  {name:'Kirby Gate Professional Bldg',abbr:'KG-PRO'},
+  {name:'Kirby Gate Business Campus',abbr:'KG-BUS'},
+  {name:'Kirby Gate Patrol',abbr:'KG-PAT'},
+  {name:'Shoppes at Kirby',abbr:'KG-SHP'},
+  {name:'Serenity Recovery Center',abbr:'SER-REC'},
+  {name:'Darby Dental',abbr:'DRB-DEN'},
+  {name:'Embassy Suites',abbr:'EMB-STE'},
+  {name:'Hampton Inn & Suites',abbr:'HAM-INN'},
+  {name:'Hampton Hacks Cross',abbr:'HAM-HCK'},
+  {name:'Hotel Indigo',abbr:'HTL-IND'},
+  {name:'Guaranty Bank - Poplar',abbr:'GRT-POP'},
+  {name:'Guaranty Bank - N Front St',abbr:'GRT-FRT'},
+  {name:'Patriot Bank - Raleigh Springs',abbr:'PAT-RAL'},
+  {name:'Patriot Bank - Rosemark',abbr:'PAT-ROS'},
+  {name:'Shelby Park Dist I & II',abbr:'SHB-PRK'},
+  {name:'Normandy Park Subdivision',abbr:'NRM-PRK'},
+  {name:'Pointe at Kirby Gates',abbr:'PT-KBY'},
+  {name:'REI Nation',abbr:'REI-NAT'},
+  {name:'River Horse DC',abbr:'RVH-DC'},
+  {name:'River Horse Lamar',abbr:'RVH-LAM'},
+  {name:'River Horse Latham',abbr:'RVH-LAT'},
+  {name:'River Horse Railroad',abbr:'RVH-RRD'},
+  {name:'Riverhorse Logistics',abbr:'RVH-LOG'},
+  {name:'Rockwool',abbr:'RCK-WOL'},
+  {name:'Rockwool Construction',abbr:'RCK-CON'},
+  {name:'Semmes Murphey Clinic',abbr:'SEM-MUR'},
+  {name:'TRA-VURE',abbr:'TRA-VUR'},
+  {name:'Waters of Memphis',abbr:'WAT-MEM'},
+  {name:'Dattell Shopping',abbr:'DAT-SHP'},
+  {name:'Frayser Village',abbr:'FRY-VLG'},
+  {name:'Germantown Village Condos',abbr:'GTN-CON'},
+  {name:'Olymbec USA LLC',abbr:'OLY-USA'},
+  {name:'Parkway House Condominiums',abbr:'PRK-HSE'},
+  {name:'Westminster Academy',abbr:'WST-ACA'},
+  {name:'Whitehaven Community',abbr:'WHT-COM'},
+  {name:'Park Cosmorama',abbr:'PRK-COS'},
+  {name:'Associated Pharmacies',abbr:'ASC-PHA'},
+  {name:'Army Recruiting Office',abbr:'ARM-REC'},
+  {name:'Cash Saver 274 - Madison',abbr:'CSH-274'},
+  {name:'Cash Saver 275 - Elvis Presley',abbr:'CSH-275'},
+  {name:'Cash Saver 327 - S 3rd St',abbr:'CSH-327'},
+  {name:'Fast Pace Urgent Care',abbr:'FST-PAC'},
+  {name:'Highland Strip',abbr:'HLD-STP'},
+  {name:'Kirby Wine & Liquor',abbr:'KBY-WNE'},
+  {name:'La Grange Commons',abbr:'LGR-COM'},
+  {name:'Methodist - Cordova',abbr:'MTH-COR'},
+  {name:'Methodist - Quince',abbr:'MTH-QUI'},
+  {name:'Methodist - Union Ave',abbr:'MTH-UNI'},
+  {name:'Methodist - Winchester',abbr:'MTH-WIN'},
+  {name:'Methodist - Champion Hills',abbr:'MTH-CHA'},
+  {name:'Methodist - Infectious Disease',abbr:'MTH-INF'},
+  {name:'Methodist - Poplar',abbr:'MTH-POP'},
+  {name:'Rafferty\'s Germantown',abbr:'RAF-GTN'},
+  {name:'University Clinical Health',abbr:'UCH-CLN'},
+  {name:'Jack Brown\'s Beer & Burger',abbr:'JCK-BRN'},
+  {name:'Harrah\'s Convention Center',abbr:'HAR-CNV'},
+  {name:'Union Terrace',abbr:'UNI-TER'},
+  {name:'Dollar Tree - Kirby Gate',abbr:'DLR-KBY'},
+  {name:'Dollar General - Kirby Gate',abbr:'DLG-KBY'},
+  {name:'Airport Business Park',abbr:'AIR-BUS'},
+  {name:'Office Complex - 555 Perkins',abbr:'555-PKN'},
+  {name:'Kroger Kirby Gates',abbr:'KRG-KBY'},
+  {name:'Wendy\'s Kirby Gates',abbr:'WND-KBY'},
+  {name:'Freedom Plasma Kirby Gates',abbr:'FPL-KBY'},
+  {name:'Summit Kirby Gates',abbr:'SUM-KBY'},
+  {name:'Dunkin Kirby Gates',abbr:'DNK-KBY'},
+  {name:'Starbucks Kirby Gates',abbr:'SBX-KBY'},
+  {name:'Willow Grove Shopping Center',abbr:'WLW-GRV'},
+  {name:'CMDS',abbr:'CMDS'},
+  {name:'AutoZone',abbr:'AUT-ZON'},
+  {name:'Bluff City Jaguar Land Rover',abbr:'BLC-JLR'},
+  {name:'Merkle Standard',abbr:'MRK-STD'},
+  {name:'Vanguard Patrol',abbr:'VAN-PAT'},
+];
+
+// ── DEFAULT ROSTER ────────────────────────────────────────────────────────────
+const DEFAULT_ROSTER=[
+  ["William Jones","Officer"],["Vananh Nguyen","Officer"],["Jarael Church","Officer"],
+  ["Jermaine Burgess","Officer"],["Raven Roper","Officer"],["Thomas Iosue","Officer"],
+  ["Breana Evans","Officer"],["Viola Dawson","Supervisor"],["Brenda Burks","Officer"],
+  ["Justin McCadney","Officer"],["Devan Kuhn","Officer"],["Abdul Bonner","Officer"],
+  ["Alan Rogers","Officer"],["Charles Clemons","Officer"],["Senethia Dawkins","Officer"],
+  ["Arielle Lucia","Officer"],["James Fowinkle","Officer"],["Dexter Gwinn","Officer"],
+  ["Zavian Barber","Officer"],["Keith Torry","Officer"],["Jonathan Spencer","Officer"],
+  ["Terry Harper","Officer"],["Jermaine Mackey","Officer"],["Kassie Moore","Officer"],
+  ["Aly Meabed","Officer"],["Daria Dorsey","Officer"],["Dennis Mills Jr.","Officer"],
+  ["Deshawn Glass","Officer"],["Shemeka Sykes","Officer"],["Barbara Mosley","Officer"],
+  ["Gloria Anderson","Officer"],["Samuel Laird II","Officer"],["James Rendleman","Officer"],
+  ["Stacey Johnson","Supervisor"],["Joel Wright","Officer"],["Jessie Pearson","Supervisor"],
+  ["Johnny Jeffries","Supervisor"],["Billy Aldridge Jr.","Officer"],["Vanessa Hogan","Officer"],
+  ["Xzavier Pickens","Officer"],["Alice Holton","Officer"],["Daniel Bobo Jr.","Supervisor"],
+  ["Johnnie Hines","Officer"],["Cadarius Thomas","Officer"],["Richard Smith II","Officer"],
+  ["Cameron Hill","Officer"],["James Wallace","Supervisor"],["Stephen Armer","Officer"],
+  ["Adam Uphoff","Officer"],["John Prescott","Officer"],["Steven Parish","Officer"],
+  ["James Bridges Jr.","Officer"],["Traveyon Adams","Officer"],["Valerie Isom","Officer"],
+  ["Jackie Williams","Officer"],["Dequavius Wynn","Officer"],["Benjamin Benetz","Supervisor"],
+  ["Billy Carlisle","Officer"],["Kaisavon Mooney","Officer"],["Howard Brooks","Officer"],
+  ["Phillip Watson","Officer"],["Samaiya Riley","Officer"],["Steve Bauer","Officer"],
+  ["William Patton","Officer"],["Terrance Purdy","Supervisor"],["Daniela Lewis","Officer"],
+  ["Brian Heard Sr.","Officer"],["Tonya Hutcherson","Officer"],["Andrionna Davis","Supervisor"],
+  ["Debra Boyce","Officer"],["Andrew Holman","Officer"],["Larry Jones","Officer"],
+  ["Tracey Meeks","Officer"],["Kym Dabney","Officer"],["Jack Beloate","Officer"],
+  ["Bernice Jackson","Officer"],["Cindy Mogy","Officer"],["Thomas Wise","Officer"],
+  ["Tyquan Rainey","Officer"],["Lelisa Richardson","Officer"],["Janice Carlisle","Officer"],
+  ["Roy Brittmon","Officer"],["James Rains","Officer"],["Paul Taylor","Officer"],
+  ["Robert McGhee","Officer"],["Gary Hibbler","Officer"],["Dianne Jones","Officer"],
+  ["Marquavious Banks","Officer"],["Everett Carter X","Officer"],["DeAndra Hale","Officer"],
+  ["Jarriel Twillie","Officer"],["Jason Corzine","Officer"],["Brantley Scott","Officer"],
+  ["Debra Clayton","Officer"],["LaQuisha Yarbrough","Officer"],["Robert Morris","Officer"],
+  ["Katelyn Smith","Supervisor"],["Hosea Jones","Officer"],["Robin Hale","Officer"],
+  ["Jeffrey Roddy","Officer"],["Nakia Greer","Officer"],["Malcolm Mathis","Officer"],
+  ["James Bradley","Officer"],["Marshun Bates","Officer"],["Demetrius Gregory","Officer"],
+  ["James McMullen","Officer"],["India Johnson","Officer"],["Shakina Gardner","Officer"],
+  ["Julian Jolly","Officer"],["Marvin Smith","Officer"],["Stephanie Cathey","Officer"],
+  ["Domonic Martin","Officer"],["Donald Kepple Jr.","Officer"],["Agbonighale Oigbokie","Officer"],
+  ["Wanda Thomas","Officer"],["Marquette Pogue","Officer"],["Angelica Anthony","Officer"],
+  ["Jessica Tennial","Officer"],["Lakneyia Bradley","Officer"],["Qubbie Massey","Officer"],
+  ["Sommer Collins","Supervisor"],["Michael Marsh","Officer"],["Tharon Brown Sr.","Officer"],
+  ["Leonard Hall Jr.","Officer"],["Ronald Jefferson","Officer"],["Byron Smith","Officer"],
+  ["Aminata Sacko","Officer"],["Dorothy Massey","Officer"],["Jessie Jernigan","Officer"],
+  ["Savannah Bass","Officer"],["Sannika Rhodes","Officer"],["Carlton Hubbert","Officer"],
+  ["Brandon Roberts","Officer"],["Lonnie Williams","Officer"],["Michael Johnson","Officer"],
+  ["Lawrence Rogers","Officer"],["Rafaeul Rimbert","Officer"],["Amiroumounina Sy","Officer"],
+  ["Bigne Camara","Officer"],["Donnell McDowell","Officer"],["Frankie James","Officer"],
+  ["Ahmed Mesalem","Officer"],["LaDiamond Patterson","Officer"],["Don Mayo","Officer"],
+  ["Avonte' Brown","Supervisor"],["Jaquan Reed","Officer"],["Khalid Washington","Officer"],
+  ["Ziad Al Shraideh","Officer"],["Chandler Ross","Officer"],["Dejuan Jones","Officer"],
+  ["Shanniah Davis","Officer"],["Shirley King","Officer"],["Shakerial Jones","Officer"]
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycby_yDipH2uJpz0nvCqisClEB4xuvQc8rdq5oN9ndNJKTcCKFRY8Pn8qti5dzXwk3vod/exec';
+let scriptUrl=SCRIPT_URL;
+let currentQuarter=localStorage.getItem(QUARTER_KEY)||'Q1 2026';
+let guards=[],nextId=1,demoMode=false,saveTimeout=null;
+let expandedRows=new Set(),expandedSection={};
+let currentTab='roster';
+let currentUser=localStorage.getItem('vanguard_user_email')||'';
+let prevQuarterScores={};
+let postAssignments=JSON.parse(localStorage.getItem('vanguard_posts')||'{}');
+let autoRefreshTimer=null,isSyncing=false;
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+window.onload=()=>{
+  document.getElementById('quarterSel').value=currentQuarter;
+  document.getElementById('footerQ').textContent=currentQuarter;
+  // Always use hardcoded URL — never demo mode on load
+  scriptUrl=SCRIPT_URL;
+  demoMode=false;
+  if(!currentUser){
+    document.getElementById('emailModal').style.display='flex';
+  } else {
+    document.getElementById('userLabel').textContent=currentUser;
+    loadData();
+  }
+};
+
+function switchTab(tab,el){
+  currentTab=tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(tab==='development') renderDevTab();
+  if(tab==='posts') renderPostTab();
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+function saveEmail(){
+  const email=document.getElementById('emailInput').value.trim();
+  if(!email||!email.includes('@')){alert('Please enter a valid email address.');return;}
+  currentUser=email;
+  localStorage.setItem('vanguard_user_email',email);
+  document.getElementById('emailModal').style.display='none';
+  document.getElementById('userLabel').textContent=email;
+  loadData();
+}
+function changeUser(){
+  localStorage.removeItem('vanguard_user_email');
+  currentUser='';
+  document.getElementById('emailInput').value='';
+  document.getElementById('emailModal').style.display='flex';
+}
+function showSetup(){document.getElementById('setupModal').style.display='flex';}
+function saveScriptUrl(){
+  const url=document.getElementById('scriptUrlInput').value.trim();
+  if(!url.startsWith('https://script.google.com')){alert('Please enter a valid Google Apps Script URL.');return;}
+  scriptUrl=url;demoMode=false;
+  document.getElementById('setupModal').style.display='none';loadData();
+}
+function useDemoMode(){
+  demoMode=true;scriptUrl='';
+  document.getElementById('setupModal').style.display='none';
+  loadDefaultRoster();setStatus('connected','Demo mode — data is local to this browser only');
+}
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+function loadDefaultRoster(){
+  guards=DEFAULT_ROSTER.map(r=>({
+    id:nextId++,name:r[0],role:r[1],teamPerf:0,
+    ratings:{punctuality:0,professionalism:0,reliability:0,workEthic:0},
+    notes:'',coaching:[]
+  }));
+  render();
+}
+
+function jsonp(url){
+  return new Promise((resolve,reject)=>{
+    const cb='cb_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');
+    const timer=setTimeout(()=>{
+      delete window[cb];document.body.removeChild(script);
+      reject(new Error('timeout'));
+    },15000);
+    window[cb]=data=>{
+      clearTimeout(timer);delete window[cb];
+      document.body.removeChild(script);resolve(data);
+    };
+    script.src=url+(url.includes('?')?'&':'?')+'callback='+cb;
+    script.onerror=()=>{clearTimeout(timer);delete window[cb];reject(new Error('script error'));};
+    document.body.appendChild(script);
+  });
+}
+
+async function loadData(){
+  setStatus('loading','Loading roster...');
+  try{
+    const data=await jsonp(`${scriptUrl}?action=get&quarter=${encodeURIComponent(currentQuarter)}&t=${Date.now()}`);
+    if(data.error) throw new Error(data.error);
+    const base=DEFAULT_ROSTER.map(r=>({
+      id:nextId++,name:r[0],role:r[1],teamPerf:0,
+      ratings:{punctuality:0,professionalism:0,reliability:0,workEthic:0},
+      notes:'',coaching:[]
+    }));
+    if(data.guards&&data.guards.length>0){
+      data.guards.forEach(remote=>{
+        const local=base.find(g=>g.name===remote.name);
+        if(local){
+          local.ratings=remote.ratings||local.ratings;
+          local.notes=remote.notes||'';
+          local.teamPerf=remote.teamPerf||0;
+          local.coaching=remote.coaching||[];
+          local.role=remote.role||local.role;
+        } else {
+          base.push({
+            id:nextId++,name:remote.name,role:remote.role||'Officer',teamPerf:remote.teamPerf||0,
+            ratings:remote.ratings||{punctuality:0,professionalism:0,reliability:0,workEthic:0},
+            notes:remote.notes||'',coaching:remote.coaching||[]
+          });
+        }
+      });
+    }
+    guards=base;
+    try{ await loadPrevQuarterScores(); }catch(e){ prevQuarterScores={}; }
+    render();
+    setStatus('connected',`Connected &nbsp;·&nbsp; ${guards.length} officers &nbsp;·&nbsp; Auto-syncing every 30s`);
+    setTimeout(startAutoRefresh,5000);
+  }catch(e){
+    setStatus('error','Could not connect to Google Sheets. Running in local mode.');
+    loadDefaultRoster();
+  }
+}
+
+const enc=encodeURIComponent;
+
+async function initializeSheet(){
+  if(demoMode||!scriptUrl){alert('Connect to Google Sheets first via Settings.');return;}
+  if(!confirm(`Push all ${guards.length} officers to Google Sheets for ${currentQuarter}?\n\nThis activates live sync. Existing ratings will not be overwritten.`))return;
+  setStatus('loading','Sending roster to Google Sheets...');
+  const batchSize=10;
+  let totalAdded=0;
+  try{
+    for(let i=0;i<guards.length;i+=batchSize){
+      const batch=guards.slice(i,i+batchSize).map(g=>({name:g.name,role:g.role}));
+      const data=await jsonp(`${scriptUrl}?action=init&quarter=${enc(currentQuarter)}&guards=${enc(JSON.stringify(batch))}`);
+      if(data.error) throw new Error(data.error);
+      totalAdded+=data.added||0;
+      setStatus('loading',`Initializing... ${Math.min(i+batchSize,guards.length)} / ${guards.length} sent`);
+    }
+    setStatus('connected',`Sheet initialized — ${totalAdded} officers added. Live sync is now active.`);
+    document.getElementById('lastSaved').textContent=`Initialized ${new Date().toLocaleTimeString()}`;
+  }catch(e){
+    setStatus('error',`Initialize failed: ${e.message}`);
+  }
+}
+
+async function saveGuard(g,changeDetail){
+  if(demoMode||!scriptUrl)return;
+  try{
+    await jsonp(`${scriptUrl}?action=save&quarter=${enc(currentQuarter)}&guard=${enc(JSON.stringify(g))}`);
+    document.getElementById('lastSaved').textContent=`Last saved ${new Date().toLocaleTimeString()}`;
+  }catch(e){setStatus('error','Save failed — check connection');}
+}
+
+async function deleteGuardRemote(g){
+  if(!demoMode&&scriptUrl){
+    try{await jsonp(`${scriptUrl}?action=delete&quarter=${enc(currentQuarter)}&name=${enc(g.name)}`);}catch(e){}
+  }
+}
+
+async function loadPrevQuarterScores(){
+  prevQuarterScores={};
+  const prev=PREV_QUARTER[currentQuarter];
+  if(!prev||demoMode||!scriptUrl) return;
+  try{
+    const data=await jsonp(`${scriptUrl}?action=get&quarter=${enc(prev)}&t=${Date.now()}`);
+    if(data&&data.guards){
+      data.guards.forEach(g=>{
+        const v=CATS.map(c=>g.ratings[c]).filter(v=>v>0);
+        if(v.length) prevQuarterScores[g.name]=Math.round((v.reduce((a,b)=>a+b,0)/v.length)*10)/10;
+      });
+    }
+  }catch(e){ prevQuarterScores={}; }
+}
+
+function refreshData(){nextId=1;expandedRows.clear();expandedSection={};loadData();}
+function onQuarterChange(){
+  currentQuarter=document.getElementById('quarterSel').value;
+  localStorage.setItem(QUARTER_KEY,currentQuarter);
+  document.getElementById('footerQ').textContent=currentQuarter;
+  nextId=1;expandedRows.clear();expandedSection={};loadData();
+  if(autoRefreshTimer){clearInterval(autoRefreshTimer);startAutoRefresh();}
+}
+
+// ── AUTO REFRESH ──────────────────────────────────────────────────────────────
+async function backgroundSync(){
+  if(demoMode||!scriptUrl||isSyncing)return;
+  isSyncing=true;
+  try{
+    const data=await jsonp(`${scriptUrl}?action=get&quarter=${encodeURIComponent(currentQuarter)}&t=${Date.now()}`);
+    if(!data.guards||data.error)return;
+    let changed=false;
+    data.guards.forEach(remote=>{
+      const local=guards.find(g=>g.name===remote.name);
+      if(!local){guards.push({...remote,id:nextId++,coaching:remote.coaching||[],teamPerf:remote.teamPerf||0});changed=true;}
+      else{
+        CATS.forEach(c=>{if((remote.ratings[c]||0)!==local.ratings[c]){local.ratings[c]=remote.ratings[c]||0;changed=true;}});
+        if((remote.notes||'')!==(local.notes||'')){local.notes=remote.notes||'';changed=true;}
+        if((remote.teamPerf||0)!==local.teamPerf){local.teamPerf=remote.teamPerf||0;changed=true;}
+        if(remote.coaching&&JSON.stringify(remote.coaching)!==JSON.stringify(local.coaching)){local.coaching=remote.coaching;changed=true;}
+      }
+    });
+    if(changed){render();document.getElementById('lastSaved').textContent=`Synced ${new Date().toLocaleTimeString()}`;}
+  }catch(e){}finally{isSyncing=false;}
+}
+function startAutoRefresh(){
+  if(autoRefreshTimer)clearInterval(autoRefreshTimer);
+  autoRefreshTimer=setInterval(backgroundSync,30000);
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function setStatus(state,msg){
+  document.getElementById('statusDot').className='status-dot '+state;
+  document.getElementById('statusText').innerHTML=msg;
+}
+function initials(n){return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
+function avStyle(i){const c=AVC[i%AVC.length];return `background:${c[0]};color:${c[1]};`;}
+function overall(g){
+  const v=CATS.map(c=>g.ratings[c]).filter(v=>v>0);
+  return v.length?Math.round((v.reduce((a,b)=>a+b,0)/v.length)*10)/10:0;
+}
+function oBadge(g){
+  const o=overall(g);if(!o)return`<span class="overall-badge ob-na">—</span>`;
+  return`<span class="overall-badge ob-${Math.round(o)}">${o.toFixed(1)}</span>`;
+}
+function rBtns(gid,cat,val){
+  return[1,2,3,4].map(n=>
+    `<button class="star-btn${val===n?' active-'+n:''}" onclick="event.stopPropagation();setRating(${gid},'${cat}',${n})">${n}</button>`
+  ).join('');
+}
+function teamPerfBtns(gid,val){
+  return[1,2,3,4].map(n=>
+    `<button class="star-btn${val===n?' active-'+n:''}" onclick="event.stopPropagation();setTeamPerf(${gid},${n})" title="Team Performance">${n}</button>`
+  ).join('');
+}
+
+// ── TREND ─────────────────────────────────────────────────────────────────────
+function trendArrow(g){
+  const cur=overall(g);
+  const prev=prevQuarterScores[g.name];
+  if(!cur||prev===undefined) return`<span class="trend trend-na" title="No previous quarter data">–</span>`;
+  if(cur<prev) return`<span class="trend trend-up" title="Improved from ${prev}">↑</span>`;
+  if(cur>prev) return`<span class="trend trend-dn" title="Declined from ${prev}">↓</span>`;
+  return`<span class="trend trend-flat" title="Same as last quarter (${prev})">→</span>`;
+}
+
+// ── ELIGIBILITY ───────────────────────────────────────────────────────────────
+function eligFlag(g){
+  const o=overall(g);
+  if(!o) return`<span class="elig-flag elig-na">Unrated</span>`;
+  if(o<=2.0) return`<span class="elig-flag elig-green">🟢 Eligible</span>`;
+  return`<span class="elig-flag elig-red">🔴 Review</span>`;
+}
+
+// ── WEAKNESS ──────────────────────────────────────────────────────────────────
+function getWeakness(g){
+  const rated=CATS.filter(c=>g.ratings[c]>0);
+  if(!rated.length)return null;
+  const scores=rated.map(c=>g.ratings[c]);
+  const maxScore=Math.max(...scores),minScore=Math.min(...scores);
+  const allSame=maxScore===minScore;
+  const critical=rated.filter(c=>g.ratings[c]>=3);
+  const relativeWeak=rated.filter(c=>g.ratings[c]===maxScore&&!allSame&&g.ratings[c]<3);
+  const strong=rated.filter(c=>g.ratings[c]===minScore&&!allSame);
+  return{critical,relativeWeak,strong,allSame,maxScore,minScore};
+}
+function hasDevFocus(g){
+  const w=getWeakness(g);return w&&(w.critical.length>0||w.relativeWeak.length>0);
+}
+
+// ── POST RESUME ───────────────────────────────────────────────────────────────
+function getOfficerPosts(name){
+  return Object.entries(postAssignments)
+    .filter(([,officers])=>officers&&officers.includes(name))
+    .map(([siteAbbr])=>siteAbbr);
+}
+
+// ── EXPAND ROW ────────────────────────────────────────────────────────────────
+function buildExpandRow(g){
+  const w=getWeakness(g);
+  const coaching=g.coaching||[];
+  const section=expandedSection[g.id]||'dev';
+  const posts=getOfficerPosts(g.name);
+
+  // Dev content
+  let devContent='';
+  if(!w||(!w.critical.length&&!w.relativeWeak.length)){
+    devContent=`<div class="expand-header">No development focus identified — all categories rated equally or officer is unrated.</div>`;
+  } else {
+    const isCritical=w.critical.length>0;
+    const headerClass=isCritical?'critical':'weak';
+    const headerText=isCritical?'Development Focus — Priority Action Required':'Development Focus — Growth Opportunity';
+    const focusCats=isCritical?w.critical:w.relativeWeak;
+    let cards=focusCats.map(c=>{
+      const s=g.ratings[c],cls=s>=3?'icritical':'iweak',lbl=s>=4?'Priority — Unsatisfactory':s>=3?'Developing':'Growth area';
+      return`<div class="improve-card ${cls}"><div class="ic-label">${lbl}</div><div class="ic-cat">${CAT_MAP[c]}</div><div class="ic-score">Rated ${s}</div></div>`;
+    }).join('');
+    if(w.strong.length) cards+=w.strong.map(c=>
+      `<div class="improve-card istrong"><div class="ic-label">Strength</div><div class="ic-cat">${CAT_MAP[c]}</div><div class="ic-score">Rated ${g.ratings[c]}</div></div>`
+    ).join('');
+    devContent=`<div class="expand-header ${headerClass}">${headerText}</div><div class="improve-grid">${cards}</div>`;
+  }
+
+  // Coaching content
+  const coachingEntries=coaching.length
+    ? coaching.slice().reverse().map(e=>{
+        const typeClass={Call:'ctype-call',Coaching:'ctype-coaching',Warning:'ctype-warning',Note:'ctype-note'}[e.type]||'ctype-note';
+        return`<div class="coaching-entry">
+          <div class="coaching-entry-meta">
+            <span class="coaching-entry-user">${e.user||'Unknown'}</span>
+            <span>${e.date||''}</span>
+            <span class="coaching-entry-type ${typeClass}">${e.type||'Note'}</span>
+          </div>
+          <div class="coaching-entry-text">${e.text}</div>
+        </div>`;
+      }).join('')
+    : `<div class="coaching-empty">No entries yet. Log a call or coaching note below.</div>`;
+
+  // Post resume content
+  const postResume=posts.length
+    ? `<div class="post-resume-label">Current & past posts</div><div class="post-resume-tags">${posts.map(p=>`<span class="post-resume-tag">${p}</span>`).join('')}</div>`
+    : `<div class="coaching-empty">No post assignments recorded yet.</div>`;
+
+  const tr=document.createElement('tr');
+  tr.className='expand-row';
+  tr.innerHTML=`<td colspan="13"><div class="expand-content">
+    <div class="expand-tabs">
+      <button class="expand-tab${section==='dev'?' active':''}" onclick="setExpandSection(${g.id},'dev')">Development Focus</button>
+      <button class="expand-tab${section==='coaching'?' active':''}" onclick="setExpandSection(${g.id},'coaching')">Coaching Log (${coaching.length})</button>
+      <button class="expand-tab${section==='posts'?' active':''}" onclick="setExpandSection(${g.id},'posts')">Post Resume (${posts.length})</button>
+    </div>
+    <div class="expand-section${section==='dev'?' active':''}" id="es-dev-${g.id}">${devContent}</div>
+    <div class="expand-section${section==='coaching'?' active':''}" id="es-coaching-${g.id}">
+      <div class="coaching-entries">${coachingEntries}</div>
+      <div class="coaching-compose">
+        <div class="coaching-compose-row">
+          <select class="coaching-type-sel" id="ctype-${g.id}">
+            <option>Call</option><option>Coaching</option><option>Warning</option><option>Note</option>
+          </select>
+        </div>
+        <textarea class="coaching-text" id="ctext-${g.id}" placeholder="Enter call summary, coaching note, or observation..."></textarea>
+        <div><button class="btn btn-primary btn-sm" onclick="addCoachingEntry(${g.id})">Log Entry</button></div>
+      </div>
+    </div>
+    <div class="expand-section${section==='posts'?' active':''}" id="es-posts-${g.id}">${postResume}</div>
+  </div></td>`;
+  return tr;
+}
+
+function toggleExpand(id){
+  if(expandedRows.has(id))expandedRows.delete(id);else expandedRows.add(id);
+  render();
+}
+function setExpandSection(id,section){
+  expandedSection[id]=section;render();
+}
+
+// ── COACHING ──────────────────────────────────────────────────────────────────
+function addCoachingEntry(id){
+  const g=guards.find(g=>g.id===id);if(!g)return;
+  const text=document.getElementById(`ctext-${id}`).value.trim();
+  if(!text)return;
+  const type=document.getElementById(`ctype-${id}`).value;
+  if(!g.coaching)g.coaching=[];
+  g.coaching.push({
+    user:currentUser,
+    date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}),
+    type,text
+  });
+  saveGuard(g,`${type} logged for ${g.name}`);
+  render();
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function getVisible(){
+  const s=document.getElementById('searchInput').value.toLowerCase();
+  const role=document.getElementById('filterRole').value;
+  const f=document.getElementById('filterRated').value;
+  return guards.filter(g=>{
+    if(s&&!g.name.toLowerCase().includes(s))return false;
+    if(role&&g.role!==role)return false;
+    if(f==='rated'&&!CATS.some(c=>g.ratings[c]>0))return false;
+    if(f==='unrated'&&CATS.some(c=>g.ratings[c]>0))return false;
+    if(f==='eligible'){const o=overall(g);if(!o||o>2.0)return false;}
+    if(f==='noteligible'){const o=overall(g);if(!o||o<=2.0)return false;}
+    if(f==='attn'){const o=overall(g);if(!o||Math.round(o)<3)return false;}
+    return true;
+  });
+}
+
+function render(){
+  const tbody=document.getElementById('guardBody');
+  tbody.innerHTML='';
+  const visible=getVisible();
+  if(!visible.length){
+    tbody.innerHTML=`<tr><td colspan="13"><div class="empty">No officers match the current filter.</div></td></tr>`;
+    renderSummary();return;
+  }
+
+  const supervisors=visible.filter(g=>g.role==='Supervisor').sort((a,b)=>a.name.localeCompare(b.name));
+  const officers=visible.filter(g=>g.role==='Officer').sort((a,b)=>a.name.localeCompare(b.name));
+
+  function renderSection(list,label){
+    if(!list.length)return;
+    const hdr=document.createElement('tr');
+    hdr.className='section-header';
+    hdr.innerHTML=`<td colspan="13">${label} — ${list.length} members</td>`;
+    tbody.appendChild(hdr);
+    list.forEach(g=>{
+      const idx=guards.indexOf(g);
+      const isOpen=expandedRows.has(g.id);
+      const isRated=CATS.some(c=>g.ratings[c]>0);
+      const isSup=g.role==='Supervisor';
+      const typeBadge=isSup
+        ?`<span class="type-badge type-sup">Sup</span>`
+        :`<span class="type-badge type-off">Off</span>`;
+      const expandBtn=isRated
+        ?`<button class="expand-btn${isOpen?' open':''}" onclick="event.stopPropagation();toggleExpand(${g.id})">&#9654;</button>`
+        :`<span style="display:inline-block;width:20px"></span>`;
+      // Team perf col: only show for supervisors
+      const teamPerfCell=isSup
+        ?`<td><div class="star-row">${teamPerfBtns(g.id,g.teamPerf||0)}</div></td>`
+        :`<td style="color:var(--text-muted);font-size:11px;text-align:center">—</td>`;
+
+      const tr=document.createElement('tr');
+      tr.className='officer-row';
+      if(isRated)tr.onclick=()=>toggleExpand(g.id);
+      tr.innerHTML=`
+        <td style="width:28px">${expandBtn}</td>
+        <td><div class="cell-name"><div class="avatar" style="${avStyle(idx)}">${initials(g.name)}</div>
+          <div style="min-width:0"><div class="officer-name">${g.name}</div><div class="officer-role">${g.role}</div></div></div></td>
+        <td>${typeBadge}</td>
+        ${CATS.map(cat=>`<td><div class="star-row">${rBtns(g.id,cat,g.ratings[cat])}</div></td>`).join('')}
+        ${teamPerfCell}
+        <td>${oBadge(g)}</td>
+        <td>${trendArrow(g)}</td>
+        <td>${eligFlag(g)}</td>
+        <td><input class="notes-input" value="${(g.notes||'').replace(/"/g,'&quot;')}" placeholder="Notes..." onclick="event.stopPropagation()" onchange="setNote(${g.id},this.value)"/></td>
+        <td><button class="del-btn" onclick="event.stopPropagation();removeGuard(${g.id})">&#10005;</button></td>`;
+      tbody.appendChild(tr);
+      if(isOpen){const er=buildExpandRow(g);if(er)tbody.appendChild(er);}
+    });
+  }
+
+  renderSection(supervisors,'Supervisors');
+  renderSection(officers,'Officers');
+  renderSummary();
+  if(currentTab==='development')renderDevTab();
+  if(currentTab==='posts')renderPostTab();
+}
+
+function renderSummary(){
+  const rated=guards.filter(g=>CATS.some(c=>g.ratings[c]>0));
+  const avgO=rated.length?rated.reduce((s,g)=>s+overall(g),0)/rated.length:0;
+  const top=rated.filter(g=>Math.round(overall(g))===1).length;
+  const eligible=rated.filter(g=>overall(g)>0&&overall(g)<=2.0).length;
+  const attn=rated.filter(g=>Math.round(overall(g))>=3).length;
+  const devCount=guards.filter(g=>hasDevFocus(g)).length;
+  document.getElementById('summaryGrid').innerHTML=`
+    <div class="sum-card"><div class="sum-label">Total roster</div><div class="sum-val">${guards.length}</div><div class="sum-sub">active officers</div></div>
+    <div class="sum-card"><div class="sum-label">Rated</div><div class="sum-val">${rated.length}<span style="font-size:14px;font-weight:400;color:var(--text-muted)"> / ${guards.length}</span></div><div class="sum-sub">this quarter</div></div>
+    <div class="sum-card"><div class="sum-label">Team average</div><div class="sum-val" style="color:var(--blue)">${avgO?avgO.toFixed(1):'—'}</div><div class="sum-sub">overall score</div></div>
+    <div class="sum-card"><div class="sum-label">Top Post Eligible</div><div class="sum-val" style="color:var(--green)">${eligible}</div><div class="sum-sub">overall ≤ 2.0</div></div>
+    <div class="sum-card"><div class="sum-label">Outstanding (1)</div><div class="sum-val" style="color:var(--green)">${top}</div><div class="sum-sub">officers</div></div>
+    <div class="sum-card"><div class="sum-label">Needs attention</div><div class="sum-val" style="color:var(--red)">${attn}</div><div class="sum-sub">rated 3 or 4</div></div>`;
+  document.getElementById('devBadge').textContent=devCount;
+}
+
+// ── DEVELOPMENT TAB ───────────────────────────────────────────────────────────
+function renderDevTab(){
+  const grid=document.getElementById('devGrid');
+  const withFocus=guards.filter(g=>hasDevFocus(g));
+  if(!withFocus.length){
+    grid.innerHTML=`<div class="dev-empty">Rate officers on the Roster tab — officers with a relative weakness will appear here automatically.</div>`;return;
+  }
+  withFocus.sort((a,b)=>{
+    const wa=getWeakness(a),wb=getWeakness(b);
+    const ca=wa?wa.critical.length:0,cb=wb?wb.critical.length:0;
+    if(cb!==ca)return cb-ca;return(overall(b)||0)-(overall(a)||0);
+  });
+  grid.innerHTML=withFocus.map((g,idx)=>{
+    const w=getWeakness(g);
+    const isCritical=w.critical.length>0;
+    const hClass=isCritical?'hcritical':'hweak';
+    const focusCats=isCritical?w.critical:w.relativeWeak;
+    const focusRows=focusCats.map(c=>{
+      const s=g.ratings[c],lbl=s>=4?'Priority':s>=3?'Developing':'Growth area',lClass=s>=3?'lc':'lw';
+      return`<div class="dev-focus-row"><div><div class="dev-weak-label ${lClass}">${lbl}</div><div class="dev-focus-cat">${CAT_MAP[c]}</div></div><span class="dev-score ds${s}">${s}</span></div>`;
+    }).join('');
+    const strongRows=w.strong.length&&!w.allSame?`<hr class="dev-divider">`+w.strong.map(c=>
+      `<div class="dev-focus-row"><div><div class="dev-weak-label ls">Strength</div><div class="dev-focus-cat">${CAT_MAP[c]}</div></div><span class="dev-score ds${g.ratings[c]}">${g.ratings[c]}</span></div>`
+    ).join(''):'';
+    return`<div class="dev-card">
+      <div class="dev-card-header ${hClass}">
+        <div class="avatar" style="${avStyle(idx)};width:26px;height:26px;font-size:10px;">${initials(g.name)}</div>
+        <div class="dev-card-name">${g.name}</div>${oBadge(g)}${trendArrow(g)}&nbsp;${eligFlag(g)}
+      </div>
+      <div class="dev-card-body">${focusRows}${strongRows}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── POST ASSIGNMENT TAB ───────────────────────────────────────────────────────
+function renderPostTab(){
+  const search=document.getElementById('postSearch').value.toLowerCase();
+  const grid=document.getElementById('postGrid');
+  const filteredSites=SITES.filter(s=>
+    !search||s.name.toLowerCase().includes(search)||s.abbr.toLowerCase().includes(search)||
+    (postAssignments[s.abbr]||[]).some(n=>n.toLowerCase().includes(search))
+  );
+
+  grid.innerHTML=filteredSites.map(site=>{
+    const assigned=postAssignments[site.abbr]||[];
+    const officerOptions=guards
+      .filter(g=>g.role==='Officer')
+      .sort((a,b)=>a.name.localeCompare(b.name))
+      .map(g=>`<option value="${g.name}"${assigned.includes(g.name)?' selected':''}>${g.name}</option>`)
+      .join('');
+
+    const assignedList=assigned.length
+      ? assigned.map(name=>{
+          const g=guards.find(gg=>gg.name===name);
+          const o=overall(g||{ratings:{punctuality:0,professionalism:0,reliability:0,workEthic:0}});
+          const elig=o&&o<=2.0?`<span class="post-officer-badge ds1">Eligible</span>`:o?`<span class="post-officer-badge ds3">Review</span>`:'';
+          return`<div class="post-officer-row">
+            <div class="post-officer-name">${name}</div>${elig}
+            <button class="btn btn-sm" style="color:var(--red);border-color:var(--red-border);padding:2px 7px;font-size:11px" onclick="unassignOfficer('${site.abbr}','${name}')">Remove</button>
+          </div>`;
+        }).join('')
+      :`<div class="post-empty-slot">No officer assigned</div>`;
+
+    return`<div class="post-card">
+      <div class="post-card-header">
+        <div class="post-card-title">${site.name}</div>
+        <div class="post-card-abbr">${site.abbr}</div>
+      </div>
+      <div class="post-card-body">
+        ${assignedList}
+        <select class="post-assign-select" onchange="assignOfficer('${site.abbr}',this.value);this.value=''">
+          <option value="">+ Assign officer...</option>
+          ${officerOptions}
+        </select>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function assignOfficer(siteAbbr,name){
+  if(!name)return;
+  if(!postAssignments[siteAbbr])postAssignments[siteAbbr]=[];
+  if(!postAssignments[siteAbbr].includes(name)){
+    postAssignments[siteAbbr].push(name);
+    localStorage.setItem('vanguard_posts',JSON.stringify(postAssignments));
+    savePostAssignments(siteAbbr,name,'assigned');
+  }
+  renderPostTab();
+}
+
+function unassignOfficer(siteAbbr,name){
+  if(!postAssignments[siteAbbr])return;
+  postAssignments[siteAbbr]=postAssignments[siteAbbr].filter(n=>n!==name);
+  localStorage.setItem('vanguard_posts',JSON.stringify(postAssignments));
+  savePostAssignments(siteAbbr,name,'removed');
+  renderPostTab();render();
+}
+
+async function savePostAssignments(siteAbbr,officerName,action){
+  // Post assignments stored locally only — no Sheet call needed
+  localStorage.setItem('vanguard_posts',JSON.stringify(postAssignments));
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+function applyFilter(){render();}
+
+function setRating(id,cat,val){
+  const g=guards.find(g=>g.id===id);if(!g)return;
+  const prev=g.ratings[cat];g.ratings[cat]=g.ratings[cat]===val?0:val;
+  const newVal=g.ratings[cat];
+  const detail=newVal===0?`Cleared ${CAT_MAP[cat]} for ${g.name}`:`Rated ${g.name} — ${CAT_MAP[cat]}: ${newVal}${prev>0?' (was '+prev+')':''}`;
+  render();clearTimeout(saveTimeout);saveTimeout=setTimeout(()=>saveGuard(g,detail),800);
+}
+
+function setTeamPerf(id,val){
+  const g=guards.find(g=>g.id===id);if(!g)return;
+  g.teamPerf=g.teamPerf===val?0:val;
+  render();clearTimeout(saveTimeout);saveTimeout=setTimeout(()=>saveGuard(g,`Team Performance rated ${g.teamPerf} for ${g.name}`),800);
+}
+
+function setNote(id,val){
+  const g=guards.find(g=>g.id===id);if(!g)return;
+  g.notes=val;clearTimeout(saveTimeout);saveTimeout=setTimeout(()=>saveGuard(g,`Updated notes for ${g.name}`),800);
+}
+
+function addGuard(){
+  const name=document.getElementById('newName').value.trim();if(!name)return;
+  const role=document.getElementById('newRole').value;
+  const g={id:nextId++,name,role,teamPerf:0,ratings:{punctuality:0,professionalism:0,reliability:0,workEthic:0},notes:'',coaching:[]};
+  guards.push(g);document.getElementById('newName').value='';render();
+  saveGuard(g,`Added officer: ${name} (${role})`);
+}
+
+function removeGuard(id){
+  if(!confirm('Remove this officer from the rating list?'))return;
+  const g=guards.find(g=>g.id===id);
+  deleteGuardRemote(g);expandedRows.delete(id);delete expandedSection[id];
+  guards=guards.filter(g=>g.id!==id);render();
+}
+
+function clearAllRatings(){
+  if(!confirm('Clear all ratings for this quarter? This cannot be undone.'))return;
+  guards.forEach(g=>{CATS.forEach(c=>g.ratings[c]=0);g.notes='';g.teamPerf=0;});
+  expandedRows.clear();expandedSection={};render();
+  if(!demoMode&&scriptUrl){jsonp(`${scriptUrl}?action=clearAll&quarter=${enc(currentQuarter)}`).catch(()=>{});}
+}
+
+function exportCSV(){
+  const header=['Officer','Role','Punctuality','Professionalism','Reliability','Work Ethic','Team Performance','Overall','Trend','Eligible','Area for Improvement','Current Posts','Notes'].join(',');
+  const rows=guards.map(g=>{
+    const o=overall(g),w=getWeakness(g);
+    const focus=w?[...w.critical,...w.relativeWeak].map(c=>CAT_MAP[c]).join('; '):'';
+    const posts=getOfficerPosts(g.name).join('; ');
+    const prev=prevQuarterScores[g.name];
+    const trend=!o||prev===undefined?'':o<prev?'Up':o>prev?'Down':'Flat';
+    const elig=!o?'Unrated':o<=2.0?'Eligible':'Review';
+    return[`"${g.name}"`,g.role,...CATS.map(c=>g.ratings[c]||''),g.teamPerf||'',o?o.toFixed(1):'',trend,elig,`"${focus}"`,`"${posts}"`,`"${(g.notes||'').replace(/"/g,'""')}"`].join(',');
+  });
+  const csv=[header,...rows].join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`vanguard-ratings-${currentQuarter.replace(' ','-')}.csv`;a.click();
+}
+
+document.getElementById('newName').addEventListener('keydown',e=>{if(e.key==='Enter')addGuard();});
+document.getElementById('emailInput').addEventListener('keydown',e=>{if(e.key==='Enter')saveEmail();});
+</script>
+</body>
+</html>
